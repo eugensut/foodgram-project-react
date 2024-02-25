@@ -3,10 +3,12 @@ from rest_framework import viewsets, status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.decorators import action
+from django_filters.rest_framework import DjangoFilterBackend
 from djoser.serializers import SetPasswordSerializer
 
 from . import serializers
 from dishes.models import Tag, Ingredient
+from .custom_filters import IngredientFilter
 
 User = get_user_model()
 
@@ -59,3 +61,5 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = serializers.IngredientSerializer
     pagination_class = None
     permission_classes = [AllowAny]
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = IngredientFilter
