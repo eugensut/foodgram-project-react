@@ -2,6 +2,19 @@ from rest_framework import serializers
 from django.contrib.auth.hashers import make_password
 
 from users.models import User
+from dishes.models import Tag, Ingredient
+
+
+class TagSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Tag
+        fields = '__all__'
+
+
+class IngredientSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Ingredient
+        fields = '__all__'
 
 
 class ReadUserSerializer(serializers.ModelSerializer):

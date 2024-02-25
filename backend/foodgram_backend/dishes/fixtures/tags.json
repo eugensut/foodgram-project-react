@@ -1,0 +1,38 @@
+[
+  {
+    "model": "dishes.Tag",
+    "pk": 1,
+    "fields": {
+      "name": "Breakfast",
+      "color": "#ADFF2F",
+      "slug": "breakfast"
+    }
+  },
+  {
+    "model": "dishes.Tag",
+    "pk": 2,
+    "fields": {
+      "name": "Lunch",
+      "color": "#556B2F",
+      "slug": "lunch"
+    }
+  },
+  {
+    "model": "dishes.Tag",
+    "pk": 3,
+    "fields": {
+      "name": "Dinner",
+      "color": "#00BFFF",
+      "slug": "dinner"
+    }
+  },
+  {
+    "model": "dishes.Tag",
+    "pk": 4,
+    "fields": {
+      "name": "Supper",
+      "color": "#8A2BE2",
+      "slug": "supper"
+    }
+  }
+]

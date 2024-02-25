@@ -3,10 +3,10 @@ from rest_framework import viewsets, status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from djoser import utils
 from djoser.serializers import SetPasswordSerializer
 
 from . import serializers
+from dishes.models import Tag, Ingredient
 
 User = get_user_model()
 
@@ -33,7 +33,7 @@ class UsersViewSet(viewsets.ModelViewSet):
             request.user
         )
         return Response(serializer.data)
-    
+
     @action(
             ['post'],
             detail=False,
@@ -45,3 +45,17 @@ class UsersViewSet(viewsets.ModelViewSet):
         self.request.user.set_password(serializer.data["new_password"])
         self.request.user.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class TagViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Tag.objects.all()
+    serializer_class = serializers.TagSerializer
+    pagination_class = None
+    permission_classes = [AllowAny]
+
+
+class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Ingredient.objects.all()
+    serializer_class = serializers.IngredientSerializer
+    pagination_class = None
+    permission_classes = [AllowAny]
