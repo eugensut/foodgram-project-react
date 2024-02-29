@@ -1,4 +1,7 @@
 from django.db import models
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 
 class Tag(models.Model):
@@ -24,3 +27,34 @@ class Ingredient(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class Recipe(models.Model):
+    name = models.CharField(max_length=200)
+    text = models.TextField()
+    image = models.ImageField(
+        'Picture',
+        upload_to='dishes/',
+        blank=True
+    )
+    cooking_time = models.PositiveSmallIntegerField()
+
+    tags = models.ManyToManyField(Tag)
+    author = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='recipes'
+    )
+    ingredients = models.ManyToManyField(
+        Ingredient, through='IngredientInRecipe'
+    )
+
+
+class IngredientInRecipe(models.Model):
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        related_name='amount_recipes'
+    )
+    ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
+    amount = models.PositiveSmallIntegerField()
+
+

@@ -5,9 +5,10 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.serializers import SetPasswordSerializer
+from django.db.models import Value
 
 from . import serializers
-from dishes.models import Tag, Ingredient
+from dishes.models import Tag, Ingredient, Recipe
 from .custom_filters import IngredientFilter
 
 User = get_user_model()
@@ -20,7 +21,7 @@ class UsersViewSet(viewsets.ModelViewSet):
 
     def get_serializer_class(self):
         if self.action in ('retrieve', 'list', 'me'):
-            return serializers.ReadUserSerializer
+            return serializers.UserReadSerializer
         if self.action == 'set_password':
             return SetPasswordSerializer
         return serializers.CreateUserSerializer
@@ -63,3 +64,26 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [AllowAny]
     filter_backends = [DjangoFilterBackend]
     filterset_class = IngredientFilter
+
+
+class RecipeViewSet(viewsets.ModelViewSet):
+    http_method_names = ['get', 'post', 'patch', 'delete']
+
+    def get_serializer_class(self):
+        if self.action in ('create', 'partial_update'):
+            return serializers.RecipeCreateSerializer
+        return serializers.RecipeReadSerializer
+  
+    def get_permissions(self):
+        if self.action in ['list', 'retrieve']:
+            return [AllowAny(), ]
+        return [IsAuthenticated(), ]
+
+    def get_queryset(self):
+        queryset = Recipe.objects.annotate(
+            is_favorited=Value(True), is_in_shopping_cart=Value(True)
+        ).all()
+        return queryset
+    
+    def perform_create(self, serializer):
+        return serializer.save(author=self.request.user)
