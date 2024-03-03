@@ -1,12 +1,12 @@
 import base64
 
 from rest_framework import serializers
-from rest_framework.validators import ValidationError
+from rest_framework.validators import ValidationError, UniqueTogetherValidator
 from django.contrib.auth.hashers import make_password
 from django.core.files.base import ContentFile
 
-from users.models import User
-from dishes.models import Tag, Ingredient, IngredientInRecipe, Recipe
+from users.models import User, Follow
+from dishes.models import Tag, Ingredient, IngredientInRecipe, Recipe, Favorite
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -69,7 +69,7 @@ class Base64ImageField(serializers.ImageField):
 
             data = ContentFile(base64.b64decode(imgstr), name='temp.' + ext)
 
-        return super().to_internal_value(data) 
+        return super().to_internal_value(data)
 
 
 class IngredientInRecipetReadSerializer(serializers.ModelSerializer):
@@ -141,22 +141,50 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         data['tags'] = TagSerializer(instance.tags, many=True).data
         return data
 
-    def validate_ingredients(self, value):
-        for dct in value:
+    def validate_cooking_time(self, value):
+        if value < 1:
+            raise ValidationError('the value must be greater than 0')
+        return value
+
+    def validate_tags(self, value):
+        if len(value) != len(set(value)):
+            raise ValidationError('is duplicated.')
+        return value
+
+    def validate_empty_values(self, data):
+        if not data.get('tags'):
+            raise ValidationError(
+                {'tags': 'This field is required.'}
+            )
+        ingredients = data.get('ingredients')
+        if not ingredients:
+            raise ValidationError(
+                {'ingredients': 'This field is required.'}
+            )
+        unique = set()
+        for dct in ingredients:
             pk = dct.get('id')
+            if pk in unique:
+                raise ValidationError(
+                    {f'id {pk}': 'ingredient is duplicated.'}
+                )
+            unique.add(pk)
             if not Ingredient.objects.filter(pk=pk).exists():
                 raise ValidationError(
-                    {f'id {pk}': 'does not exist.'}
+                    {f'id {pk}': 'ingredient does not exist.'}
                 )
-        return value
+            amount = dct.get('amount')
+            if amount < 1:
+                raise ValidationError(
+                    {f'amount {amount}': 'the value must be greater than 0'}
+                )
+
+        return super().validate_empty_values(data)
 
     def create(self, validated_data):
         recipe = super().create(validated_data)
         self.save_ingredients_in_recipe(recipe)
         return recipe
-    
-    def update(self, instance, validated_data):
-        return super().update(instance, validated_data)
 
     def save_ingredients_in_recipe(self, recipe):
         ingredients = self.initial_data.get('ingredients')
@@ -168,3 +196,89 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
                 amount=value['amount']
             )
 
+
+class FavoriteSerializer(serializers.ModelSerializer):
+    name = serializers.CharField(source='recipe.name', read_only=True)
+    image = Base64ImageField(source='recipe.image', read_only=True)
+    cooking_time = serializers.IntegerField(
+        source='recipe.cooking_time', read_only=True
+    )
+    id = serializers.IntegerField(source='recipe.id', read_only=True)
+
+    class Meta:
+        model = Favorite
+        fields = (
+            'id',
+            'user',
+            'recipe',
+            'name',
+            'image',
+            'cooking_time'
+        )
+        extra_kwargs = {
+            'recipe': {'write_only': True},
+            'user': {'write_only': True},
+        }
+
+    def validate(self, attrs):
+        if self.context['request'].method == 'POST':
+            if Favorite.objects.filter(
+                user=attrs.get('user'),
+                recipe=attrs.get('recipe')
+            ).exists():
+                raise serializers.ValidationError(
+                    'This recipe is already in favorites'
+                )
+        return super().validate(attrs)
+
+
+class RecipeFollowSerializer(serializers.ModelSerializer):
+    image = Base64ImageField(read_only=True)
+
+    class Meta:
+        model = Recipe
+        fields = (
+            'id',
+            'name',
+            'cooking_time',
+            'image',
+        )
+
+
+class FollowReadSerializer(serializers.ModelSerializer):
+    recipes = RecipeFollowSerializer(many=True, read_only=True)
+    recipes_count = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = User
+        fields = (
+            'email',
+            'id',
+            'username',
+            'first_name',
+            'last_name',
+            'is_subscribed',
+            'recipes',
+            'recipes_count'
+        )
+
+
+class FollowCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        fields = ('user', 'following')
+        model = Follow
+        validators = [
+            UniqueTogetherValidator(
+                queryset=Follow.objects.all(),
+                fields=['user', 'following'],
+                message="You have already subscribed to this author"
+            )
+        ]
+
+    def validate(self, data):
+        """Check that USER is not FOLLOWING."""
+        if data['user'] == data['following']:
+            raise serializers.ValidationError(
+                "You can't subscribe to yourself"
+            )
+        return data

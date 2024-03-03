@@ -40,3 +40,24 @@ class User(AbstractUser):
     @property
     def is_subscribed(self):
         return False
+
+
+class Follow(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='follower',
+        verbose_name='Follower'
+    )
+    following = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='following',
+        verbose_name='Author'
+    )
+
+    def __str__(self):
+        return (
+            f'The user {self.user} is subscribed'
+            f' to the author {self.following}.'
+        )

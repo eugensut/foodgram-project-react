@@ -7,7 +7,7 @@ from django.conf import settings
 from dishes.models import Ingredient
 
 
-DATAFILES_DIR = os.path.join(settings.BASE_DIR.parent.parent, 'data')
+DATAFILES_DIR = os.path.join(settings.BASE_DIR, 'data')
 
 FILENAME = 'ingredients.json'
 

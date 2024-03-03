@@ -39,13 +39,18 @@ class Recipe(models.Model):
     )
     cooking_time = models.PositiveSmallIntegerField()
 
-    tags = models.ManyToManyField(Tag)
+    tags = models.ManyToManyField(
+        Tag, related_name='recipes'
+    )
     author = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name='recipes'
     )
     ingredients = models.ManyToManyField(
         Ingredient, through='IngredientInRecipe'
     )
+
+    def __str__(self):
+        return self.name
 
 
 class IngredientInRecipe(models.Model):
@@ -56,5 +61,25 @@ class IngredientInRecipe(models.Model):
     )
     ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
     amount = models.PositiveSmallIntegerField()
+
+
+class Favorite(models.Model):
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+    )
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE
+    )
+
+    class Meta:
+        default_related_name = 'favorites'
+        verbose_name = 'Favorite'
+        constraints = [
+                models.UniqueConstraint(
+                    fields=['recipe', 'user'],
+                    name='unique_recipe'
+                )
+            ]
 
 

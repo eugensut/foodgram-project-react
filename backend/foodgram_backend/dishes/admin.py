@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Tag, Ingredient, Recipe, IngredientInRecipe
+from .models import Tag, Ingredient, Recipe, IngredientInRecipe, Favorite
 
 DEFAULT_EMPTY_VALUE = '-empty-'
 
@@ -31,6 +31,15 @@ class RecipeAdmin(admin.ModelAdmin):
     inlines = (RecipeIngredientInline,)
 
 
+class FavoriteAdmin(admin.ModelAdmin):
+    list_display = (
+        'pk',
+        'recipe',
+        'user'
+    )
+
+
 admin.site.register(Tag, TagAdmin)
 admin.site.register(Ingredient, IngredientAdmin)
 admin.site.register(Recipe, RecipeAdmin)
+admin.site.register(Favorite, FavoriteAdmin)
