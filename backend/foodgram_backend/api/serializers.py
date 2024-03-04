@@ -129,6 +129,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         model = Recipe
         fields = (
             'id',
+            'pub_date',
             'tags',
             'author',
             'ingredients',
@@ -291,7 +292,7 @@ class FollowCreateSerializer(serializers.ModelSerializer):
 class CartCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Cart
-        fields = ('user', 'recipe', 'pub_date')
+        fields = ('user', 'recipe')
         validators = [
             UniqueTogetherValidator(
                 queryset=Cart.objects.all(),
