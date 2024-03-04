@@ -4,6 +4,7 @@ from rest_framework import serializers
 from rest_framework.validators import ValidationError, UniqueTogetherValidator
 from django.contrib.auth.hashers import make_password
 from django.core.files.base import ContentFile
+from django.utils import timezone
 
 from users.models import User, Follow
 from dishes.models import (
@@ -113,6 +114,7 @@ class RecipeReadSerializer(serializers.ModelSerializer):
 
 
 class RecipeCreateSerializer(serializers.ModelSerializer):
+    pub_date = serializers.HiddenField(default=timezone.now)
     author = UserReadSerializer(read_only=True)
     image = Base64ImageField()
     ingredients = IngredientInRecipetReadSerializer(
@@ -289,7 +291,7 @@ class FollowCreateSerializer(serializers.ModelSerializer):
 class CartCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Cart
-        fields = ('user', 'recipe')
+        fields = ('user', 'recipe', 'pub_date')
         validators = [
             UniqueTogetherValidator(
                 queryset=Cart.objects.all(),
