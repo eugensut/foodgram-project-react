@@ -30,6 +30,7 @@ class Ingredient(models.Model):
 
 
 class Recipe(models.Model):
+    pub_date = models.DateTimeField(auto_now_add=True)
     name = models.CharField(max_length=200)
     text = models.TextField()
     image = models.ImageField(
@@ -83,3 +84,15 @@ class Favorite(models.Model):
             ]
 
 
+class Cart(models.Model):
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+    )
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE
+    )
+
+    class Meta:
+        default_related_name = 'cart'
+        verbose_name = 'Shopping cart'

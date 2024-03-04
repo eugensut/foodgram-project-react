@@ -1,17 +1,21 @@
+import io
+
+from django.http import HttpResponse
 from django.contrib.auth import get_user_model
 from rest_framework import viewsets, status
 from rest_framework.generics import GenericAPIView
-from rest_framework.mixins import ListModelMixin
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.serializers import SetPasswordSerializer
-from django.db.models import Value, Count, OuterRef, Subquery, Prefetch
+from django.db.models import Value, Count, OuterRef, Subquery, Prefetch, Sum
 
 from . import serializers
-from dishes.models import Tag, Ingredient, Recipe, Favorite
+from dishes.models import (
+    Tag, Ingredient, Recipe, Favorite, IngredientInRecipe
+)
 from .filters import IngredientFilter, RecipeFilter
 from .permissions import RecipesPermissions
 from users.models import Follow
@@ -85,7 +89,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         queryset = Recipe.objects.annotate(
             is_favorited=Value(True), is_in_shopping_cart=Value(True)
-        ).all()
+        ).order_by('pub_date').all()
         return queryset
 
     def perform_create(self, serializer):
@@ -114,7 +118,7 @@ class GetFollowViewSet(viewsets.ModelViewSet):
     http_method_names = ['get']
     permission_classes = [IsAuthenticated]
     serializer_class = serializers.FollowReadSerializer
-    
+
     def get_queryset(self):
         authors = User.objects.filter(
             following__user=self.request.user
@@ -125,7 +129,7 @@ class GetFollowViewSet(viewsets.ModelViewSet):
         sub = Subquery(
             Recipe.objects.filter(author__in=authors).filter(
                 author=OuterRef('author_id')
-            ).order_by('-id').values('id')[:int(recipes_limit)]
+            ).order_by('pub_date').values('id')[:int(recipes_limit)]
         )
         return authors.prefetch_related(
             Prefetch('recipes', queryset=Recipe.objects.filter(id__in=sub))
@@ -139,7 +143,7 @@ class DeletePostFollowViewSet(GenericAPIView):
     def get_full_data(self, author_id):
         authors = User.objects.filter(id=author_id).annotate(
             recipes_count=Count('recipes')
-        )   
+        )
         recipes_limit = self.request.GET.get('recipes_limit')
         if not recipes_limit:
             return authors.first()
@@ -181,3 +185,57 @@ class DeletePostFollowViewSet(GenericAPIView):
             )
         follow.delete()
         return Response('You unsubscribed.', status.HTTP_204_NO_CONTENT)
+
+
+class GetCartViewSet(viewsets.ReadOnlyModelViewSet):
+    permission_classes = [IsAuthenticated]
+
+    def list(self, request, *args, **kwargs):
+        ingredients = IngredientInRecipe.objects.filter(
+            id__in=Subquery(request.user.cart.all().values('recipe_id'))
+        ).values(
+            'ingredient__name', 'ingredient__measurement_unit'
+        ).annotate(total=Sum('amount'))
+        text_buffer = io.StringIO('')
+        for ingredien in ingredients:
+            text_buffer.write(
+                '{ingredient__name} '
+                '{total} '
+                '{ingredient__measurement_unit}'.format(**ingredien)
+            )
+        return HttpResponse(
+            content=text_buffer.getvalue(), content_type="text/plain"
+        )
+
+
+class PostCartViewSet(GenericAPIView):
+    http_method_names = ['post', 'delete']
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        data = {
+            "recipe": self.kwargs.get('recipe_id'),
+            "user": self.request.user.id
+        }
+        serializer = serializers.CartCreateSerializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        serializer_data = serializers.RecipeFollowSerializer(
+            serializer.instance.recipe
+        ).data
+        return Response(
+            serializer_data, status=status.HTTP_201_CREATED
+        )
+
+    def delete(self, request, *args, **kwargs):
+        recipe = get_object_or_404(
+            Recipe,
+            id=self.kwargs.get('recipe_id')
+        )
+        cart = self.request.user.cart.filter(recipe=recipe)
+        if not cart.exists():
+            return Response(
+                'There is not recipe in cart', status.HTTP_400_BAD_REQUEST
+            )
+        cart.delete()
+        return Response('Recipe deleted.', status.HTTP_204_NO_CONTENT)

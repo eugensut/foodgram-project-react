@@ -6,7 +6,9 @@ from django.contrib.auth.hashers import make_password
 from django.core.files.base import ContentFile
 
 from users.models import User, Follow
-from dishes.models import Tag, Ingredient, IngredientInRecipe, Recipe, Favorite
+from dishes.models import (
+    Tag, Ingredient, IngredientInRecipe, Recipe, Favorite, Cart
+)
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -282,3 +284,16 @@ class FollowCreateSerializer(serializers.ModelSerializer):
                 "You can't subscribe to yourself"
             )
         return data
+
+
+class CartCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Cart
+        fields = ('user', 'recipe')
+        validators = [
+            UniqueTogetherValidator(
+                queryset=Cart.objects.all(),
+                fields=['user', 'recipe'],
+                message="You have already this recipe in cart."
+            )
+        ]

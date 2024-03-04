@@ -1,6 +1,8 @@
 from django.contrib import admin
 
-from .models import Tag, Ingredient, Recipe, IngredientInRecipe, Favorite
+from .models import (
+    Tag, Ingredient, Recipe, IngredientInRecipe, Favorite, Cart
+)
 
 DEFAULT_EMPTY_VALUE = '-empty-'
 
@@ -39,7 +41,16 @@ class FavoriteAdmin(admin.ModelAdmin):
     )
 
 
+class CartAdmin(admin.ModelAdmin):
+    list_display = (
+        'pk',
+        'recipe',
+        'user'
+    )
+
+
 admin.site.register(Tag, TagAdmin)
 admin.site.register(Ingredient, IngredientAdmin)
 admin.site.register(Recipe, RecipeAdmin)
 admin.site.register(Favorite, FavoriteAdmin)
+admin.site.register(Cart, CartAdmin)
