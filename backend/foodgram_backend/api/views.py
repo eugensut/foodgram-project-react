@@ -36,9 +36,9 @@ class UsersViewSet(viewsets.ModelViewSet):
         return serializers.UserCreateSerializer
 
     @action(
-            ['get'],
-            detail=False,
-            permission_classes=[IsAuthenticated]
+        ['get'],
+        detail=False,
+        permission_classes=[IsAuthenticated]
     )
     def me(self, request):
         serializer = self.get_serializer(
@@ -47,9 +47,9 @@ class UsersViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     @action(
-            ['post'],
-            detail=False,
-            permission_classes=[IsAuthenticated]
+        ['post'],
+        detail=False,
+        permission_classes=[IsAuthenticated]
     )
     def set_password(self, request):
         serializer = self.get_serializer(data=request.data)

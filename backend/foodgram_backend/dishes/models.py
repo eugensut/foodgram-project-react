@@ -77,11 +77,11 @@ class Favorite(models.Model):
         default_related_name = 'favorites'
         verbose_name = 'Favorite'
         constraints = [
-                models.UniqueConstraint(
-                    fields=['recipe', 'user'],
-                    name='unique_recipe'
-                )
-            ]
+            models.UniqueConstraint(
+                fields=['recipe', 'user'],
+                name='unique_recipe'
+            )
+        ]
 
 
 class Cart(models.Model):
