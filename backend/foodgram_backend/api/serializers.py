@@ -25,6 +25,11 @@ class IngredientSerializer(serializers.ModelSerializer):
 
 
 class UserReadSerializer(serializers.ModelSerializer):
+    is_subscribed = serializers.SerializerMethodField()
+
+    def get_is_subscribed(self, obj):
+        return True
+
     class Meta:
         model = User
         fields = (

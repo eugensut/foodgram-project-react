@@ -1,12 +1,14 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 
+from colorfield.fields import ColorField
+
 User = get_user_model()
 
 
 class Tag(models.Model):
     name = models.CharField(max_length=200, unique=True)
-    color = models.CharField(max_length=7, unique=True)
+    color = ColorField()
     slug = models.SlugField(unique=True)
 
     def __str__(self):
