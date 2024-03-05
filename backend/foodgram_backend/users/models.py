@@ -37,10 +37,6 @@ class User(AbstractUser):
     class Meta:
         ordering = ['id']
 
-    @property
-    def is_subscribed(self):
-        return False
-
 
 class Follow(models.Model):
     user = models.ForeignKey(
