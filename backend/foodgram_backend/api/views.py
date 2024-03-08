@@ -230,57 +230,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
         )
 
 
-class DeletePostFollowViewSet(GenericAPIView):
-    http_method_names = ['post', 'delete']
-    permission_classes = [IsAuthenticated]
-
-    def get_full_data(self, author_id):
-        authors = User.objects.filter(id=author_id).annotate(
-            recipes_count=Count('recipes')
-        )
-        recipes_limit = self.request.GET.get('recipes_limit')
-        if not recipes_limit:
-            return authors.first()
-        sub = Subquery(
-            Recipe.objects.filter(author__in=authors).filter(
-                author=OuterRef('author_id')
-            ).order_by('-id').values('id')[:int(recipes_limit)]
-        )
-        return authors.prefetch_related(
-            Prefetch('recipes', queryset=Recipe.objects.filter(id__in=sub))
-        ).first()
-
-    def post(self, request, *args, **kwargs):
-        author_id = self.kwargs.get('author_id')
-        get_object_or_404(User, pk=author_id)
-        data = {"following": author_id, "user": self.request.user.id}
-        serializer = serializers.FollowCreateSerializer(data=data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        serialazer_data = serializers.FollowReadSerializer(
-            self.get_full_data(author_id)
-        ).data
-        return Response(
-            serialazer_data, status=status.HTTP_201_CREATED
-        )
-
-    def delete(self, request, *args, **kwargs):
-        author = get_object_or_404(
-            User,
-            id=self.kwargs.get('author_id'),
-        )
-        follow = Follow.objects.filter(
-            user=self.request.user,
-            following=author
-        )
-        if not follow.exists():
-            return Response(
-                'You are not subscribed.', status.HTTP_400_BAD_REQUEST
-            )
-        follow.delete()
-        return Response('You unsubscribed.', status.HTTP_204_NO_CONTENT)
-
-
 class GetCartViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [IsAuthenticated]
 
