@@ -3,7 +3,7 @@ from django_filters.rest_framework import (
 )
 from django_filters import CharFilter
 from django.db.models import Exists, OuterRef
-from dishes.models import Ingredient, Recipe, Tag, Favorite
+from dishes.models import Ingredient, Recipe, Tag
 
 
 class IngredientFilter(FilterSet):
@@ -21,6 +21,7 @@ class RecipeFilter(FilterSet):
         queryset=Tag.objects.all()
     )
     is_favorited = BooleanFilter(method='get_is_favorited')
+    is_in_shopping_cart = BooleanFilter(method='get_is_in_shopping_cart')
 
     def get_is_favorited(self, queryset, name, value):
         user = self.request.user
@@ -29,7 +30,15 @@ class RecipeFilter(FilterSet):
         return queryset.filter(
             Exists(user.favorites.filter(recipe=OuterRef('pk')))
         )
-           
+
+    def get_is_in_shopping_cart(self, queryset, name, value):
+        user = self.request.user
+        if user.is_anonymous:
+            return queryset.none()
+        return queryset.filter(
+            Exists(user.cart.filter(recipe=OuterRef('pk')))
+        )
+
     class Meta:
         model = Recipe
         fields = ['author', 'is_favorited']

@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth import get_user_model
+from django.core.validators import MaxValueValidator, MinValueValidator
 
 from colorfield.fields import ColorField
 
@@ -28,7 +29,7 @@ class Ingredient(models.Model):
         ]
 
     def __str__(self):
-        return self.name
+        return f'{self.name} {self.measurement_unit}'
 
 
 class Recipe(models.Model):
@@ -40,7 +41,9 @@ class Recipe(models.Model):
         upload_to='dishes/',
         blank=True
     )
-    cooking_time = models.PositiveSmallIntegerField()
+    cooking_time = models.PositiveSmallIntegerField(
+        validators=[MaxValueValidator(3600), MinValueValidator(1)]
+    )
 
     tags = models.ManyToManyField(
         Tag, related_name='recipes'
@@ -63,7 +66,19 @@ class IngredientInRecipe(models.Model):
         related_name='amount_recipes'
     )
     ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
-    amount = models.PositiveSmallIntegerField()
+    amount = models.PositiveSmallIntegerField(
+        validators=[MaxValueValidator(9999), MinValueValidator(1)]
+    )
+
+    def __str__(self):
+        return '{recipe} {self.ingredient} {self.amount}'
+
+    constraints = [
+            models.UniqueConstraint(
+                fields=['recipe', 'ingredient'],
+                name='unique_ingredient_in_recipe'
+            )
+        ]
 
 
 class Favorite(models.Model):
@@ -85,6 +100,9 @@ class Favorite(models.Model):
             )
         ]
 
+    def __str__(self):
+        return f'Favorite recipe {self.recipe} for user {self.user}.'
+
 
 class Cart(models.Model):
     recipe = models.ForeignKey(
@@ -98,3 +116,12 @@ class Cart(models.Model):
     class Meta:
         default_related_name = 'cart'
         verbose_name = 'Shopping cart'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['recipe', 'user'],
+                name='unique_recip_in_cart'
+            )
+        ]
+
+    def __str__(self):
+        return (f'The user {self.user} bought this recipe {self.recipe}')

@@ -10,7 +10,9 @@ from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.serializers import SetPasswordSerializer
-from django.db.models import Value, Count, OuterRef, Subquery, Prefetch, Sum
+from django.db.models import (
+    Value, Exists, Count, OuterRef, Subquery, Prefetch, Sum
+)
 
 from . import serializers
 from dishes.models import (
@@ -26,14 +28,51 @@ User = get_user_model()
 class UsersViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     permission_classes = [AllowAny]
-    http_method_names = ['get', 'post']
+    http_method_names = ['get', 'post', 'delete']
 
     def get_serializer_class(self):
         if self.action in ('retrieve', 'list', 'me'):
             return serializers.UserReadSerializer
         if self.action == 'set_password':
             return SetPasswordSerializer
+        if self.action == 'subscriptions':
+            return serializers.FollowReadSerializer
+        if self.action == 'subscribe':
+            return serializers.FollowCreateSerializer
         return serializers.UserCreateSerializer
+
+    def get_subscriptions_queryset(self):
+        authors = User.objects.filter(
+            following__user=self.request.user
+        ).annotate(recipes_count=Count('recipes'))
+        recipes_limit = self.request.GET.get('recipes_limit')
+        if not recipes_limit:
+            return authors
+        sub = Subquery(
+            Recipe.objects.filter(author__in=authors).filter(
+                author=OuterRef('author_id')
+            ).order_by('pub_date').values('id')[:int(recipes_limit)]
+        )
+        return authors.prefetch_related(
+            Prefetch('recipes', queryset=Recipe.objects.filter(id__in=sub))
+        ).all()
+
+    def get_queryset(self):
+        if self.action in ('subscriptions', 'subscribe'):
+            return self.get_subscriptions_queryset()
+        if self.request.user.is_anonymous:
+            is_subscribed = Value(False)
+        else:
+            is_subscribed = Exists(
+                self.request.user.follower.filter(id=OuterRef("following__id"))
+            )
+        return User.objects.all().annotate(is_subscribed=is_subscribed)
+
+    def destroy(self, request, *args, **kwargs):
+        return Response(
+            {'detail': 'Method \"DELETE\" not allowed.'},
+            status=status.HTTP_405_METHOD_NOT_ALLOWED
+        )
 
     @action(
         ['get'],
@@ -45,6 +84,50 @@ class UsersViewSet(viewsets.ModelViewSet):
             request.user
         )
         return Response(serializer.data)
+
+    @action(
+        ['get'],
+        detail=False,
+        permission_classes=[IsAuthenticated]
+    )
+    def subscriptions(self, request):
+        queryset = self.get_queryset()
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+    @action(
+        ['post', 'delete'],
+        detail=True,
+        permission_classes=[IsAuthenticated]
+    )
+    def subscribe(self, request, pk):
+        if request.method == 'DELETE':
+            author = self.get_object()
+            follow = Follow.objects.filter(
+                user=self.request.user,
+                following=author
+            )
+            if not follow.exists():
+                return Response(
+                    'You are not subscribed.', status.HTTP_400_BAD_REQUEST
+                )
+            follow.delete()
+            return Response('You unsubscribed.', status.HTTP_204_NO_CONTENT)
+        serializer = self.get_serializer(data={"following": pk})
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        serialazer_data = serializers.FollowReadSerializer(
+            self.get_queryset().first()
+        ).data
+        headers = self.get_success_headers(serializer.data)
+        return Response(
+            serialazer_data, status=status.HTTP_201_CREATED, headers=headers
+        )
 
     @action(
         ['post'],
@@ -87,52 +170,63 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return serializers.RecipeReadSerializer
 
     def get_queryset(self):
+        user = self.request.user
+        if user.is_anonymous:
+            is_favorited = Value(False)
+            is_in_shopping_cart = Value(False)
+            is_subscribed = Value(False)
+        else:
+            is_favorited = Exists(user.favorites.filter(recipe=OuterRef('pk')))
+            is_in_shopping_cart = Exists(
+                user.cart.filter(recipe=OuterRef('pk'))
+            )
+            is_subscribed = Exists(
+                self.request.user.follower.filter(id=OuterRef("following__id"))
+            )
         queryset = Recipe.objects.annotate(
-            is_favorited=Value(True), is_in_shopping_cart=Value(True)
-        ).order_by('pub_date').all()
-        return queryset
+            is_favorited=is_favorited,
+            is_in_shopping_cart=is_in_shopping_cart
+        ).order_by('pub_date')
+        return queryset.prefetch_related(
+            Prefetch(
+                'author', queryset=User.objects.annotate(
+                    is_subscribed=is_subscribed
+                )
+            )
+        )
 
     def perform_create(self, serializer):
         return serializer.save(author=self.request.user)
 
+    @action(
+        ['delete', 'post'],
+        detail=True,
+        permission_classes=[IsAuthenticated]
+    )
+    def favorite(self, request, pk):
+        data = {'recipe': pk, 'user': request.user.id}
+        if self.request.method == 'DELETE':
+            favorite = Favorite.objects.filter(
+                recipe=self.get_object(), user=request.user
+            )
+            if not favorite.exists():
+                return Response(
+                    {'This recipe was not found in favorites'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            favorite.delete()
+            return Response(
+                {'This recipe has been successfully deleted from favorites.'},
+                status=status.HTTP_204_NO_CONTENT
+            )
 
-class FavoriteViewSet(viewsets.ModelViewSet):
-    http_method_names = ['post', 'delete']
-    permission_classes = [IsAuthenticated]
-    queryset = Favorite.objects.all()
-    serializer_class = serializers.FavoriteSerializer
-
-    def create(self, request, *args, **kwargs):
-        recipe_id = self.kwargs.get('recipe_id')
-        data = {"recipe": recipe_id, "user": self.request.user.id}
-        serializer = self.get_serializer(data=data)
+        serializer = serializers.FavoriteSerializer(
+            data=data, context={'request': request}
+        )
         serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
+        serializer.save()
         return Response(
-            serializer.data, status=status.HTTP_201_CREATED, headers=headers
-        )
-
-
-class GetFollowViewSet(viewsets.ModelViewSet):
-    http_method_names = ['get']
-    permission_classes = [IsAuthenticated]
-    serializer_class = serializers.FollowReadSerializer
-
-    def get_queryset(self):
-        authors = User.objects.filter(
-            following__user=self.request.user
-        ).annotate(recipes_count=Count('recipes'))
-        recipes_limit = self.request.GET.get('recipes_limit')
-        if not recipes_limit:
-            return authors
-        sub = Subquery(
-            Recipe.objects.filter(author__in=authors).filter(
-                author=OuterRef('author_id')
-            ).order_by('pub_date').values('id')[:int(recipes_limit)]
-        )
-        return authors.prefetch_related(
-            Prefetch('recipes', queryset=Recipe.objects.filter(id__in=sub))
+            serializer.data, status=status.HTTP_201_CREATED
         )
 
 

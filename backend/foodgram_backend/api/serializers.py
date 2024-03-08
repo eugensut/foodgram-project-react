@@ -25,10 +25,7 @@ class IngredientSerializer(serializers.ModelSerializer):
 
 
 class UserReadSerializer(serializers.ModelSerializer):
-    is_subscribed = serializers.SerializerMethodField()
-
-    def get_is_subscribed(self, obj):
-        return True
+    is_subscribed = serializers.BooleanField(default=False)
 
     class Meta:
         model = User
@@ -256,8 +253,10 @@ class RecipeFollowSerializer(serializers.ModelSerializer):
 
 
 class FollowReadSerializer(serializers.ModelSerializer):
+    """Field is_subscribed is always True."""
     recipes = RecipeFollowSerializer(many=True, read_only=True)
     recipes_count = serializers.IntegerField(read_only=True)
+    is_subscribed = serializers.BooleanField(default=True)
 
     class Meta:
         model = User
@@ -274,6 +273,10 @@ class FollowReadSerializer(serializers.ModelSerializer):
 
 
 class FollowCreateSerializer(serializers.ModelSerializer):
+    user = serializers.HiddenField(
+        default=serializers.CurrentUserDefault()
+    )
+
     class Meta:
         fields = ('user', 'following')
         model = Follow
@@ -281,7 +284,7 @@ class FollowCreateSerializer(serializers.ModelSerializer):
             UniqueTogetherValidator(
                 queryset=Follow.objects.all(),
                 fields=['user', 'following'],
-                message="You have already subscribed to this author"
+                message='You have already subscribed to this author'
             )
         ]
 
@@ -289,7 +292,7 @@ class FollowCreateSerializer(serializers.ModelSerializer):
         """Check that USER is not FOLLOWING."""
         if data['user'] == data['following']:
             raise serializers.ValidationError(
-                "You can't subscribe to yourself"
+                'You can\'t subscribe to yourself'
             )
         return data
 
@@ -302,6 +305,6 @@ class CartCreateSerializer(serializers.ModelSerializer):
             UniqueTogetherValidator(
                 queryset=Cart.objects.all(),
                 fields=['user', 'recipe'],
-                message="You have already this recipe in cart."
+                message='You have already this recipe in cart.'
             )
         ]

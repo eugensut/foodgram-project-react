@@ -34,6 +34,9 @@ class User(AbstractUser):
         },
     )
 
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['first_name', 'last_name', 'username']
+
     class Meta:
         ordering = ['id']
 
@@ -51,6 +54,17 @@ class Follow(models.Model):
         related_name='following',
         verbose_name='Author'
     )
+
+    class Meta:
+        constraints = [
+            models.CheckConstraint(
+                check=~models.Q(user=models.F('following')),
+                name='user_not_author'
+            ),
+            models.UniqueConstraint(
+                fields=['following', 'user'], name='author_user'
+            ),
+        ]
 
     def __str__(self):
         return (
