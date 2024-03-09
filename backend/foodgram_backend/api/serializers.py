@@ -298,6 +298,10 @@ class FollowCreateSerializer(serializers.ModelSerializer):
 
 
 class CartCreateSerializer(serializers.ModelSerializer):
+    user = serializers.HiddenField(
+        default=serializers.CurrentUserDefault()
+    )
+
     class Meta:
         model = Cart
         fields = ('user', 'recipe')

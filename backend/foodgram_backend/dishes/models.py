@@ -71,7 +71,7 @@ class IngredientInRecipe(models.Model):
     )
 
     def __str__(self):
-        return '{recipe} {self.ingredient} {self.amount}'
+        return f'{self.recipe} {self.ingredient} {self.amount}'
 
     constraints = [
             models.UniqueConstraint(

@@ -1,5 +1,3 @@
-import io
-
 from django.http import HttpResponse
 from django.contrib.auth import get_user_model
 from rest_framework import viewsets, status
@@ -64,7 +62,7 @@ class UsersViewSet(viewsets.ModelViewSet):
             is_subscribed = Value(False)
         else:
             is_subscribed = Exists(
-                self.request.user.follower.filter(id=OuterRef("following__id"))
+                self.request.user.follower.filter(id=OuterRef('following__id'))
             )
         return User.objects.all().annotate(is_subscribed=is_subscribed)
 
@@ -118,7 +116,7 @@ class UsersViewSet(viewsets.ModelViewSet):
                 )
             follow.delete()
             return Response('You unsubscribed.', status.HTTP_204_NO_CONTENT)
-        serializer = self.get_serializer(data={"following": pk})
+        serializer = self.get_serializer(data={'following': pk})
         serializer.is_valid(raise_exception=True)
         serializer.save()
         serialazer_data = serializers.FollowReadSerializer(
@@ -137,7 +135,7 @@ class UsersViewSet(viewsets.ModelViewSet):
     def set_password(self, request):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        self.request.user.set_password(serializer.data["new_password"])
+        self.request.user.set_password(serializer.data['new_password'])
         self.request.user.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -165,6 +163,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
     permission_classes = [RecipesPermissions]
 
     def get_serializer_class(self):
+        if self.action == 'favorite':
+            return serializers.FavoriteSerializer
+        if self.action == 'shopping_cart':
+            return serializers.CartCreateSerializer
         if self.action in ('create', 'partial_update'):
             return serializers.RecipeCreateSerializer
         return serializers.RecipeReadSerializer
@@ -181,7 +183,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 user.cart.filter(recipe=OuterRef('pk'))
             )
             is_subscribed = Exists(
-                self.request.user.follower.filter(id=OuterRef("following__id"))
+                self.request.user.follower.filter(id=OuterRef('following__id'))
             )
         queryset = Recipe.objects.annotate(
             is_favorited=is_favorited,
@@ -220,7 +222,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_204_NO_CONTENT
             )
 
-        serializer = serializers.FavoriteSerializer(
+        serializer = self.get_serializer_class(
             data=data, context={'request': request}
         )
         serializer.is_valid(raise_exception=True)
@@ -229,47 +231,51 @@ class RecipeViewSet(viewsets.ModelViewSet):
             serializer.data, status=status.HTTP_201_CREATED
         )
 
-
-class GetCartViewSet(viewsets.ReadOnlyModelViewSet):
-    permission_classes = [IsAuthenticated]
-
-    def list(self, request, *args, **kwargs):
+    @action(
+        ['get'],
+        detail=False,
+        permission_classes=[IsAuthenticated]
+    )
+    def download_shopping_cart(self, request):
         ingredients = IngredientInRecipe.objects.filter(
-            id__in=Subquery(request.user.cart.all().values('recipe_id'))
+            recipe_id__in=Subquery(request.user.cart.all().values('recipe_id'))
         ).values(
-            'ingredient__name', 'ingredient__measurement_unit'
-        ).annotate(total=Sum('amount'))
-        text_buffer = io.StringIO('')
-        for ingredien in ingredients:
-            text_buffer.write(
-                '{ingredient__name} '
-                '{total} '
-                '{ingredient__measurement_unit}'.format(**ingredien)
-            )
+            'ingredient__name',
+            'ingredient__measurement_unit',
+            total=Sum('amount')
+        )
+        output = '\n'.join(
+            [
+                ' '.join(
+                    [str(value) for value in ingredient.values()]
+                ) for ingredient in ingredients
+            ]
+        )
         return HttpResponse(
-            content=text_buffer.getvalue(), content_type="text/plain"
+            content=output, content_type='text/plain'
+        )
+
+    @action(
+        ['delete', 'post'],
+        detail=True,
+        permission_classes=[IsAuthenticated]
+    )
+    def shopping_cart(self, request, pk):
+        serializer = self.get_serializer(data={'recipe': pk})
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        serializer_data = serializers.RecipeFollowSerializer(
+            self.get_object()
+        ).data
+        return Response(
+            serializer_data, status=status.HTTP_201_CREATED
         )
 
 
 class PostCartViewSet(GenericAPIView):
     http_method_names = ['post', 'delete']
     permission_classes = [IsAuthenticated]
-
-    def post(self, request, *args, **kwargs):
-        data = {
-            "recipe": self.kwargs.get('recipe_id'),
-            "user": self.request.user.id
-        }
-        serializer = serializers.CartCreateSerializer(data=data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        serializer_data = serializers.RecipeFollowSerializer(
-            serializer.instance.recipe
-        ).data
-        return Response(
-            serializer_data, status=status.HTTP_201_CREATED
-        )
-
+    
     def delete(self, request, *args, **kwargs):
         recipe = get_object_or_404(
             Recipe,
