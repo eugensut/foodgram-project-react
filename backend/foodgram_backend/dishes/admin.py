@@ -10,7 +10,7 @@ DEFAULT_EMPTY_VALUE = '-empty-'
 class RecipeIngredientInline(admin.TabularInline):
     model = IngredientInRecipe
     extra = 3
-    verbose_name = "ingredient"
+    verbose_name = 'ingredient'
 
 
 class TagAdmin(admin.ModelAdmin):

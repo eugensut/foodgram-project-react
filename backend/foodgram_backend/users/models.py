@@ -30,7 +30,7 @@ class User(AbstractUser):
         unique=True,
         blank=False,
         error_messages={
-            'unique': _("A user with that email already exists."),
+            'unique': _('A user with that email already exists.'),
         },
     )
 

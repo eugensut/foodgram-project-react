@@ -156,5 +156,5 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 5,
 }
 DJOSER = {
-    "LOGIN_FIELD": 'email',
+    'LOGIN_FIELD': 'email',
 }

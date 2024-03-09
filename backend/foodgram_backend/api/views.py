@@ -1,11 +1,9 @@
 from django.http import HttpResponse
 from django.contrib.auth import get_user_model
 from rest_framework import viewsets, status
-from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from rest_framework.generics import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.serializers import SetPasswordSerializer
 from django.db.models import (
@@ -261,6 +259,16 @@ class RecipeViewSet(viewsets.ModelViewSet):
         permission_classes=[IsAuthenticated]
     )
     def shopping_cart(self, request, pk):
+        if request.method == 'DELETE':
+            cart = request.user.cart.filter(
+                recipe_id=pk
+            )
+            if not cart.exists():
+                return Response(
+                    'There is not recipe in cart', status.HTTP_400_BAD_REQUEST
+                )
+            cart.delete()
+            return Response('Recipe deleted.', status.HTTP_204_NO_CONTENT)
         serializer = self.get_serializer(data={'recipe': pk})
         serializer.is_valid(raise_exception=True)
         serializer.save()
@@ -270,21 +278,3 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return Response(
             serializer_data, status=status.HTTP_201_CREATED
         )
-
-
-class PostCartViewSet(GenericAPIView):
-    http_method_names = ['post', 'delete']
-    permission_classes = [IsAuthenticated]
-    
-    def delete(self, request, *args, **kwargs):
-        recipe = get_object_or_404(
-            Recipe,
-            id=self.kwargs.get('recipe_id')
-        )
-        cart = self.request.user.cart.filter(recipe=recipe)
-        if not cart.exists():
-            return Response(
-                'There is not recipe in cart', status.HTTP_400_BAD_REQUEST
-            )
-        cart.delete()
-        return Response('Recipe deleted.', status.HTTP_204_NO_CONTENT)
