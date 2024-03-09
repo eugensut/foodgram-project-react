@@ -211,6 +211,9 @@ class FavoriteSerializer(serializers.ModelSerializer):
         source='recipe.cooking_time', read_only=True
     )
     id = serializers.IntegerField(source='recipe.id', read_only=True)
+    user = serializers.HiddenField(
+        default=serializers.CurrentUserDefault()
+    )
 
     class Meta:
         model = Favorite
@@ -223,20 +226,8 @@ class FavoriteSerializer(serializers.ModelSerializer):
             'cooking_time'
         )
         extra_kwargs = {
-            'recipe': {'write_only': True},
-            'user': {'write_only': True},
+            'recipe': {'write_only': True}
         }
-
-    def validate(self, attrs):
-        if self.context['request'].method == 'POST':
-            if Favorite.objects.filter(
-                user=attrs.get('user'),
-                recipe=attrs.get('recipe')
-            ).exists():
-                raise serializers.ValidationError(
-                    'This recipe is already in favorites'
-                )
-        return super().validate(attrs)
 
 
 class RecipeFollowSerializer(serializers.ModelSerializer):

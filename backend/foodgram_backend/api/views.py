@@ -1,5 +1,6 @@
 from django.http import HttpResponse
 from django.contrib.auth import get_user_model
+from django.shortcuts import get_object_or_404
 from rest_framework import viewsets, status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -11,12 +12,9 @@ from django.db.models import (
 )
 
 from . import serializers
-from dishes.models import (
-    Tag, Ingredient, Recipe, Favorite, IngredientInRecipe
-)
+from dishes.models import Tag, Ingredient, Recipe, IngredientInRecipe
 from .filters import IngredientFilter, RecipeFilter
 from .permissions import RecipesPermissions
-from users.models import Follow
 
 User = get_user_model()
 
@@ -102,10 +100,9 @@ class UsersViewSet(viewsets.ModelViewSet):
         permission_classes=[IsAuthenticated]
     )
     def subscribe(self, request, pk):
+        author = get_object_or_404(User, pk=pk)
         if request.method == 'DELETE':
-            author = self.get_object()
-            follow = Follow.objects.filter(
-                user=self.request.user,
+            follow = request.user.follower.filter(
                 following=author
             )
             if not follow.exists():
@@ -204,10 +201,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
         permission_classes=[IsAuthenticated]
     )
     def favorite(self, request, pk):
-        data = {'recipe': pk, 'user': request.user.id}
+        favorites = request.user.favorites
         if self.request.method == 'DELETE':
-            favorite = Favorite.objects.filter(
-                recipe=self.get_object(), user=request.user
+            favorite = favorites.filter(
+                recipe=self.get_object()
             )
             if not favorite.exists():
                 return Response(
@@ -219,9 +216,13 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 {'This recipe has been successfully deleted from favorites.'},
                 status=status.HTTP_204_NO_CONTENT
             )
-
-        serializer = self.get_serializer_class(
-            data=data, context={'request': request}
+        if favorites.filter(recipe_id=pk).exists():
+            return Response(
+                {'This recipe is already in favorites'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        serializer = self.get_serializer(
+            data={'recipe': pk}
         )
         serializer.is_valid(raise_exception=True)
         serializer.save()
@@ -261,7 +262,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def shopping_cart(self, request, pk):
         if request.method == 'DELETE':
             cart = request.user.cart.filter(
-                recipe_id=pk
+                recipe=get_object_or_404(Recipe, pk=pk)
             )
             if not cart.exists():
                 return Response(
