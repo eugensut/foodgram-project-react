@@ -74,11 +74,10 @@ class IngredientInRecipe(models.Model):
         return f'{self.recipe} {self.ingredient} {self.amount}'
 
     constraints = [
-            models.UniqueConstraint(
-                fields=['recipe', 'ingredient'],
-                name='unique_ingredient_in_recipe'
-            )
-        ]
+        models.UniqueConstraint(
+            fields=['recipe', 'ingredient'], name='unique_ingredient_in_recipe'
+        )
+    ]
 
 
 class Favorite(models.Model):
