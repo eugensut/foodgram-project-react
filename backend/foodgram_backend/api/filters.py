@@ -24,6 +24,8 @@ class RecipeFilter(FilterSet):
     is_in_shopping_cart = BooleanFilter(method='get_is_in_shopping_cart')
 
     def get_is_favorited(self, queryset, name, value):
+        if not value:
+            return queryset
         user = self.request.user
         if user.is_anonymous:
             return queryset.none()
@@ -32,6 +34,8 @@ class RecipeFilter(FilterSet):
         )
 
     def get_is_in_shopping_cart(self, queryset, name, value):
+        if not value:
+            return queryset
         user = self.request.user
         if user.is_anonymous:
             return queryset.none()
