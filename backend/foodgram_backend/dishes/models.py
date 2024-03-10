@@ -70,14 +70,16 @@ class IngredientInRecipe(models.Model):
         validators=[MaxValueValidator(9999), MinValueValidator(1)]
     )
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['recipe', 'ingredient'],
+                name='unique_ingredient_in_recipe'
+            )
+        ]
+
     def __str__(self):
         return f'{self.recipe} {self.ingredient} {self.amount}'
-
-    constraints = [
-        models.UniqueConstraint(
-            fields=['recipe', 'ingredient'], name='unique_ingredient_in_recipe'
-        )
-    ]
 
 
 class Favorite(models.Model):
