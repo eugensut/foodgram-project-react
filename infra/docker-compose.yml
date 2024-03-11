@@ -10,16 +10,12 @@ services:
     env_file: .env
     volumes:
       - pg_food:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
   frontend:
-    build:
-      context: ../frontend
-      dockerfile: Dockerfile
+    image: eugensut/foodgram_frontend
     volumes:
       - ../frontend/:/app/result_build/
   backend:
-    build: ../backend/foodgram_backend/
+    image: eugensut/foodgram_backend
     env_file: .env
     depends_on:
       - db
@@ -29,7 +25,7 @@ services:
   nginx:
     image: nginx:1.19.3
     ports:
-      - "80:80"
+      - 80:80
     depends_on:
       - backend
     volumes:
@@ -38,4 +34,3 @@ services:
       - ../docs/:/usr/share/nginx/html/api/docs/
       - static:/staticfiles
       - media:/media
-

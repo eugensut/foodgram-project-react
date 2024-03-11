@@ -181,7 +181,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
                     {f'id {pk}': 'ingredient does not exist.'}
                 )
             amount = dct.get('amount')
-            if amount < 1:
+            if int(amount) < 1:
                 raise ValidationError(
                     {f'amount {amount}': 'the value must be greater than 0'}
                 )
