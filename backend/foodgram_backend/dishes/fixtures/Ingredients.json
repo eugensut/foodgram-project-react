@@ -31,4 +31,52 @@
             "measurement_unit": "cup"
         }
     },
+    {
+        "model": "dishes.Ingredient",
+        "pk": 5,
+        "fields": {
+            "name": "Sweet onion",
+            "measurement_unit": "pcs"
+        }
+    },
+    {
+        "model": "dishes.Ingredient",
+        "pk": 6,
+        "fields": {
+            "name": "Dried chives",
+            "measurement_unit": "teaspoon"
+        }
+    },
+    {
+        "model": "dishes.Ingredient",
+        "pk": 7,
+        "fields": {
+            "name": "Ground chipotle",
+            "measurement_unit": "teaspoon"
+        }
+    },
+    {
+        "model": "dishes.Ingredient",
+        "pk": 8,
+        "fields": {
+            "name": "Buttermilk",
+            "measurement_unit": "cup"
+        }
+    },
+    {
+        "model": "dishes.Ingredient",
+        "pk": 9,
+        "fields": {
+            "name": "Gluten-free panko",
+            "measurement_unit": "cup"
+        }
+    },
+    {
+        "model": "dishes.Ingredient",
+        "pk": 10,
+        "fields": {
+            "name": "Gluten-free potato flakes",
+            "measurement_unit": "cup"
+        }
+    },
 ]
