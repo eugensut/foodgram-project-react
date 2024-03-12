@@ -75,8 +75,72 @@
         "model": "dishes.Ingredient",
         "pk": 10,
         "fields": {
-            "name": "Gluten-free potato flakes",
+            "name": "Gluten-free potato flakes",
             "measurement_unit": "cup"
+        }
+    },
+    {
+        "model": "dishes.Ingredient",
+        "pk": 11,
+        "fields": {
+            "name": "Fresh flat-leaf parsley",
+            "measurement_unit": "bunch"
+        }
+    },
+    {
+        "model": "dishes.Ingredient",
+        "pk": 12,
+        "fields": {
+            "name": "Garlic",
+            "measurement_unit": "clove"
+        }
+    },
+    {
+        "model": "dishes.Ingredient",
+        "pk": 13,
+        "fields": {
+            "name": "Onion",
+            "measurement_unit": "pcs"
+        }
+    },
+    {
+        "model": "dishes.Ingredient",
+        "pk": 14,
+        "fields": {
+            "name": "Red bell pepper",
+            "measurement_unit": "pcs"
+        }
+    },
+    {
+        "model": "dishes.Ingredient",
+        "pk": 15,
+        "fields": {
+            "name": "Ground cumin",
+            "measurement_unit": "teaspoon"
+        }
+    },
+    {
+        "model": "dishes.Ingredient",
+        "pk": 16,
+        "fields": {
+            "name": "Piment d'espelette",
+            "measurement_unit": "teaspoon"
+        }
+    },
+    {
+        "model": "dishes.Ingredient",
+        "pk": 17,
+        "fields": {
+            "name": "Smoked paprika",
+            "measurement_unit": "teaspoon"
+        }
+    },
+    {
+        "model": "dishes.Ingredient",
+        "pk": 18,
+        "fields": {
+            "name": "Extra-virgin olive oil",
+            "measurement_unit": "tablespoon"
         }
     }
 ]
