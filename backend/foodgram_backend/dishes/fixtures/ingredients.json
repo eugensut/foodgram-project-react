@@ -142,5 +142,53 @@
             "name": "Extra-virgin olive oil",
             "measurement_unit": "tablespoon"
         }
+    },
+    {
+        "model": "dishes.Ingredient",
+        "pk": 19,
+        "fields": {
+            "name": "Fresh thyme leaves",
+            "measurement_unit": "teaspoon"
+        }
+    },
+    {
+        "model": "dishes.Ingredient",
+        "pk": 20,
+        "fields": {
+            "name": "Grated parmesan",
+            "measurement_unit": "cup"
+        }
+    },
+    {
+        "model": "dishes.Ingredient",
+        "pk": 21,
+        "fields": {
+            "name": "Heavy cream",
+            "measurement_unit": "cup"
+        }
+    },
+    {
+        "model": "dishes.Ingredient",
+        "pk": 22,
+        "fields": {
+            "name": "Shredded gruyere",
+            "measurement_unit": "cup"
+        }
+    },
+    {
+        "model": "dishes.Ingredient",
+        "pk": 23,
+        "fields": {
+            "name": "Unsalted butter",
+            "measurement_unit": "tablespoon"
+        }
+    },
+    {
+        "model": "dishes.Ingredient",
+        "pk": 24,
+        "fields": {
+            "name": "Whole milk",
+            "measurement_unit": "cup"
+        }
     }
 ]
