@@ -15,6 +15,7 @@ from . import serializers
 from dishes.models import Tag, Ingredient, Recipe, IngredientInRecipe
 from .filters import IngredientFilter, RecipeFilter
 from .permissions import RecipesPermissions
+from core.pagination import LimitNumberPagination
 
 User = get_user_model()
 
@@ -156,6 +157,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend]
     filterset_class = RecipeFilter
     permission_classes = [RecipesPermissions]
+    pagination_class = LimitNumberPagination
 
     def get_serializer_class(self):
         if self.action == 'favorite':

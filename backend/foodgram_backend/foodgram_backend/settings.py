@@ -152,7 +152,8 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
     ],
-    'DEFAULT_PAGINATION_CLASS': 'core.pagination.LimitNumberPagination'
+    'DEFAULT_PAGINATION_CLASS': 'core.pagination.LimitNumberPagination',
+    'PAGE_SIZE': 4,
 }
 DJOSER = {
     'LOGIN_FIELD': 'email',
