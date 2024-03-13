@@ -230,5 +230,53 @@
             "name": "Rice vinegar",
             "measurement_unit": "tablespoon"
         }
+    },
+    {
+        "model": "dishes.Ingredient",
+        "pk": 30,
+        "fields": {
+            "name": "Mushrooms",
+            "measurement_unit": "oz"
+        }
+    },
+    {
+        "model": "dishes.Ingredient",
+        "pk": 31,
+        "fields": {
+            "name": "Scallions",
+            "measurement_unit": "pcs"
+        }
+    },
+    {
+        "model": "dishes.Ingredient",
+        "pk": 32,
+        "fields": {
+            "name": "Sugar snap peas",
+            "measurement_unit": "cup"
+        }
+    },
+    {
+        "model": "dishes.Ingredient",
+        "pk": 33,
+        "fields": {
+            "name": "Chicken cutlets",
+            "measurement_unit": "pcs"
+        }
+    },
+    {
+        "model": "dishes.Ingredient",
+        "pk": 34,
+        "fields": {
+            "name": "Vegetable oil",
+            "measurement_unit": "tablespoon"
+        }
+    },
+    {
+        "model": "dishes.Ingredient",
+        "pk": 35,
+        "fields": {
+            "name": "Low-sodium chicken broth",
+            "measurement_unit": "cup"
+        }
     }
 ]
