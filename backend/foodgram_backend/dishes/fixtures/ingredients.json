@@ -190,5 +190,45 @@
             "name": "Whole milk",
             "measurement_unit": "cup"
         }
+    },
+    {
+        "model": "dishes.Ingredient",
+        "pk": 25,
+        "fields": {
+            "name": "Basil leaves",
+            "measurement_unit": "tablespoon"
+        }
+    },
+    {
+        "model": "dishes.Ingredient",
+        "pk": 26,
+        "fields": {
+            "name": "Fresh ginger",
+            "measurement_unit": "tablespoon"
+        }
+    },
+    {
+        "model": "dishes.Ingredient",
+        "pk": 27,
+        "fields": {
+            "name": "Peaches",
+            "measurement_unit": "pcs"
+        }
+    },
+    {
+        "model": "dishes.Ingredient",
+        "pk": 28,
+        "fields": {
+            "name": "Pork tenderloin",
+            "measurement_unit": "oz"
+        }
+    },
+    {
+        "model": "dishes.Ingredient",
+        "pk": 29,
+        "fields": {
+            "name": "Rice vinegar",
+            "measurement_unit": "tablespoon"
+        }
     }
 ]
