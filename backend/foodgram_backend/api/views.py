@@ -241,8 +241,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         ).values(
             'ingredient__name',
             'ingredient__measurement_unit',
-            total=Sum('amount')
-        )
+        ).annotate(total=Sum('amount'))
         output = '\n'.join(
             [
                 ' '.join(
