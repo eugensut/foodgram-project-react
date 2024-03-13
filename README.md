@@ -72,4 +72,20 @@ python3.9 manage.py loaddata tags ingredients
 ```bash
 python3.9 manage.py importcsv
 python3.9 manage.py importjson
-```  
+```
+### Start a project: 
+```bash
+python3.9 manage.py runserver
+```
+## Launching a project via Docker
+
+### Create a directory: 
+- create a file in this directory for running multicontainer applications.
+  
+- Copy the contents of the file docker-compose-production.xml from the infra directory to the file you created
+
+```bash
+mkdir foodgram-project-react
+cd foodgram-project-react
+touch docker-compose.yml
+```
