@@ -278,5 +278,109 @@
             "name": "Low-sodium chicken broth",
             "measurement_unit": "cup"
         }
+    },
+    {
+        "model": "dishes.Ingredient",
+        "pk": 36,
+        "fields": {
+            "name": "Lemon",
+            "measurement_unit": "pcs"
+        }
+    },
+    {
+        "model": "dishes.Ingredient",
+        "pk": 37,
+        "fields": {
+            "name": "Top round london broil steak",
+            "measurement_unit": "pound"
+        }
+    },
+    {
+        "model": "dishes.Ingredient",
+        "pk": 36,
+        "fields": {
+            "name": "Lemon",
+            "measurement_unit": "pcs"
+        }
+    },
+    {
+        "model": "dishes.Ingredient",
+        "pk": 37,
+        "fields": {
+            "name": "Top round london broil steak",
+            "measurement_unit": "pound"
+        }
+    },
+    {
+        "model": "dishes.Ingredient",
+        "pk": 38,
+        "fields": {
+            "name": "Worcestershire sauce",
+            "measurement_unit": "tablespoon"
+        }
+    },
+    {
+        "model": "dishes.Ingredient",
+        "pk": 39,
+        "fields": {
+            "name": "Broccoli florets",
+            "measurement_unit": "cup"
+        }
+    },
+    {
+        "model": "dishes.Ingredient",
+        "pk": 40,
+        "fields": {
+            "name": "Butternut squash",
+            "measurement_unit": "cup"
+        }
+    },
+    {
+        "model": "dishes.Ingredient",
+        "pk": 41,
+        "fields": {
+            "name": "Can enchilada sauce",
+            "measurement_unit": "oz"
+        }
+    },
+    {
+        "model": "dishes.Ingredient",
+        "pk": 42,
+        "fields": {
+            "name": "Can no-sodium-added black beans",
+            "measurement_unit": "oz"
+        }
+    },
+    {
+        "model": "dishes.Ingredient",
+        "pk": 43,
+        "fields": {
+            "name": "Lean ground turkey",
+            "measurement_unit": "pound"
+        }
+    },
+    {
+        "model": "dishes.Ingredient",
+        "pk": 44,
+        "fields": {
+            "name": "Olive oil",
+            "measurement_unit": "teaspoon"
+        }
+    },
+    {
+        "model": "dishes.Ingredient",
+        "pk": 45,
+        "fields": {
+            "name": "Salsa",
+            "measurement_unit": "cup"
+        }
+    },
+    {
+        "model": "dishes.Ingredient",
+        "pk": 46,
+        "fields": {
+            "name": "Whole wheat couscous",
+            "measurement_unit": "cup"
+        }
     }
 ]
