@@ -185,7 +185,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         queryset = Recipe.objects.annotate(
             is_favorited=is_favorited,
             is_in_shopping_cart=is_in_shopping_cart
-        ).order_by('pub_date')
+        ).order_by('-pub_date')
         return queryset.prefetch_related(
             Prefetch(
                 'author', queryset=User.objects.annotate(

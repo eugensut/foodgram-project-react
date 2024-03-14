@@ -8,7 +8,7 @@ from dishes.models import Ingredient, Recipe, Tag
 
 
 class IngredientFilter(FilterSet):
-    name = CharFilter(lookup_expr='startswith')
+    name = CharFilter(lookup_expr='istartswith')
 
     class Meta:
         model = Ingredient
